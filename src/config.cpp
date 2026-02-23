@@ -135,6 +135,12 @@ void CConfig::removeSpecialConfigValue(const char* cat, const char* name) {
         throw "No such category";
 
     std::erase_if(IT->get()->defaultValues, [name](const auto& other) { return other.first == name; });
+
+    for (auto& sc : impl->specialCategories) {
+        if (sc->descriptor->name == cat) {
+            std::erase_if(sc->values, [&](const auto& other) { return other.first == name; });
+        }
+    }
 }
 
 void CConfig::addSpecialCategory(const char* name, SSpecialCategoryOptions options_) {
@@ -1110,7 +1116,7 @@ void CConfig::registerHandler(PCONFIGHANDLERFUNC func, const char* name, SHandle
 }
 
 void CConfig::unregisterHandler(const char* name) {
-    std::erase_if(impl->handlers, [name](const auto& other) { return other.name == name; });
+    std::erase_if(impl->handlers, [name](const auto& other) { return std::string_view(other.name) == name; });
 }
 
 bool CConfig::specialCategoryExistsForKey(const char* category, const char* key) {
